@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+<style>
+body {
+  font: 16px sans-serif;
+}
+rect:hover {
+    fill: #FFA623;  /* fill with a yellow */
+}
+
+#tooltip {
+    position: absolute;
+    padding: 5px 10px;
+    background: white;
+    border-radius: 3px;
+    font-family: dosis;   /* we need to import this font*/
+    font-weight: bold;  
+    box-shadow: 5px 2px 2px;
+}
+
+.hidden{display:none;}
+
+.title{
+	font: 25px sans-serif;
+}
+
+.axis text {
+  font: 10px sans-serif;
+}
+ 
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+</style>
+<script src="https://d3js.org/d3.v3.min.js"></script>
+
+</head>
+<body>
+     
+</body>
+<script>
+var svgWidth = 700;
+var svgHeight = 500;
+var spacing = 2;
+
+//creates a margin setting
+var margin = {top: 50, right: 0, bottom: 50, left: 50},
+//applies margin to canvas width and height
+canvasWidth = svgWidth + margin.right + margin.left;
+canvasHeight = svgHeight + margin.top + margin.bottom;
+//place you D3 code here
+//var myData = [ 10, 15, 20, 30, 45, 50 ];
+//var myData = [ 10, 15, 20, 30, 45, 50, 40, 45 ,50 , 40 ];
+//d3.csv("list.csv", function(error, myData){
+d3.json("js/temp.json", function(error, myData){
+	myData.forEach(function(d){
+		d.month = d.month;
+		d.tempC = +d.tempC;
+		d.tempF = +d.tempF;
+	});
+var maxData = d3.max(myData, function(d){return d.tempC;});
+var myNewData = [ 40,25,10,35,45,6,40,75,50,80, 600 ];
+//myData.sort();
+
+ /* added some style*/
+//add code here
+var tooltip = d3.select("body")
+                 .append("div")
+				 .classed("hidden",true)
+                 .attr("id","tooltip");
+//sets the scale of svg height based on array data
+var heightScale = d3.scale.linear()
+                    .domain([0,maxData])
+                    .range([0,svgHeight]);
+	//sets the scale of colours using array data				
+var colorScale = d3.scale.linear()
+                   .domain([0,maxData])
+                   .range(["yellow","orange"]);
+var yAxisScale = d3.scale.linear()
+					.domain([0, maxData])
+					.range([svgHeight, 0]);
+var xAxisScale = d3.scale.ordinal()
+        .domain(myData.map(function(d) { return d.month; }))
+        .rangeBands([0, svgWidth]);
+
+var yAxis = d3.svg.axis()
+				.scale(yAxisScale)
+				.orient("left")
+				.ticks(5);
+var xAxis = d3.svg.axis()
+				.scale(xAxisScale)
+				.orient("bottom")
+				.ticks(myData.length);
+
+	//creates svg and assigns it to a variable 
+
+	   
+var canvas = d3.select("body")
+			.append("svg")
+            .attr("width",canvasWidth)
+            .attr("height",canvasHeight)
+            .attr("style","background-color:#ddd"); /* added some style*/
+	
+canvas.append("g")
+			.attr("class","axis")
+			.attr("transform", "translate(" + (margin.left -2) + "," + margin.bottom + ")")
+			.call(yAxis);
+canvas.append("g")
+			.attr("class","axis")
+			.attr("transform", "translate(" + margin.left  + "," + (canvasHeight - (margin.bottom - 2)) + ")")
+			.call(xAxis);
+canvas.append("g")
+		.append("text")
+		.text("Average Temperature in C")
+		.attr("x", canvasWidth / 2)
+		.attr("y", 30)
+		.attr("class","title");
+var svg = canvas.append("g")
+				.attr("width", svgWidth)
+				.attr("height", svgHeight)
+				.attr("style", "background-color:#ddd")
+				.attr("transform", "translate(" + (margin.left -2) + "," + margin.bottom + ")");
+	svg.selectAll("rect")
+		 .data(myData)
+		 .enter()
+		 .append("rect") 
+		 .attr("x", function(d, i){return i * (svgWidth / myData.length);})
+		 .attr("y", function(d){return svgHeight - heightScale(d.tempC);})
+		 .attr("width", (svgWidth / myData.length) - spacing)
+		 .attr("height", function(d){return heightScale(d.tempC)})
+		 //.attr("height", function(d){return heightScale(d.tempF)})
+		 .attr("fill", function(d) {return(colorScale(d.tempC))})
+		 .on("mouseover", function(d){
+		 							d3.selectAll("#tooltip")
+										.style("left", d3.event.pageX-40 + "px")
+										.style("top", d3.event.pageY-40 + "px")
+										.classed("hidden", false);
+										tooltip.html(d.tempC + "C");
+										})
+		 .on("mouseout", function(){
+		 							d3.select("#tooltip")
+		 								.classed("hidden", true);
+		 //.call(yAxis)
+		 });
+	});
+</script>
+
+</html>
