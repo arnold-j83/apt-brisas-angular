@@ -2,7 +2,7 @@
  
 ## Overview
  
-This is an Angular.JS Websitre for a rental property in Spain.  
+This is an Angular.JS Website for a rental property in Spain.  
  
  
 ### Some the tech used includes:
